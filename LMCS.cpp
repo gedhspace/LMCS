@@ -430,7 +430,7 @@ void downloadmc(string verdov) {
                 mkdir(appedd(".minecraft/libraries/", temp.c_str()));
                 string ad = mclibraries[i]["downloads"]["artifact"]["path"];
                 if (file_exists(appedd(".minecraft/libraries/", ad.c_str()))) {
-                   // continue;
+                    continue;
                 }
                 //thread t1(download, mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
                 //t1.detach();
@@ -455,7 +455,7 @@ void downloadmc(string verdov) {
             mkdir(appedd(".minecraft/libraries/", temp.c_str()));
             string ad = mclibraries[i]["downloads"]["artifact"]["path"];
             if (file_exists(appedd(".minecraft/libraries/", ad.c_str()))) {
-               // continue;
+               continue;
             }
             //thread t1(download, mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
             //t1.detach();
@@ -475,19 +475,19 @@ void downloadmc(string verdov) {
     json ob = mcassetjsondata["objects"];
     //cout << ob << endl;
     //cout << ob["icons/icon_128x128.png"];
-    string hash = ob["minecraft/lang/zh_cn.json"]["hash"];
-    string ttt(hash.c_str(), 2);
-     mkdir(appedd(".minecraft/assets/objects/", ttt.c_str()));
-     mkdir(".minecraft/assets/objects/indexes");
+    //string hash = ob["minecraft/lang/zh_cn.json"]["hash"];
+    //string ttt(hash.c_str(), 2);
+    // mkdir(appedd(".minecraft/assets/objects/", ttt.c_str()));
+    // mkdir(".minecraft/assets/objects/indexes");
 
      //k.Push(appedd(appedd(appedd("https://bmclapi2.bangbang93.com/assets/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob["minecraft/lang/zh_cn.json"]["size"]);
-     /*
+     
     for (auto it = ob.begin(); it != ob.end(); ++it) {
         //cout << it.key() << endl;
         string hash = ob[it.key()]["hash"];
         string ttt(hash.c_str(), 2);
         if (file_exists(appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()))) {
-            continue;
+            //continue;
         }
         //cout << ttt << endl;
         // 
@@ -499,9 +499,9 @@ void downloadmc(string verdov) {
         //mgr.PushBack(task);
         
         //download(appedd(appedd(appedd("https://resources.download.minecraft.net/",ttt.c_str()),"/"),hash.c_str()), appedd(appedd(appedd(".minecraft/assets/", ttt.c_str()),"/"), hash.c_str()));
-        k.Push(appedd(appedd(appedd("https://bmclapi2.bangbang93.com/assets/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob[it.key()]["size"]);
+        k.Push(appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob[it.key()]["size"]);
     }
-    */
+    
     k.down();
     /*
     mgr.StartDownload([](long long dlNow, long long dlTotal, double lfProgress) {

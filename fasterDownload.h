@@ -352,7 +352,7 @@ public:
                 if (comp[i] == 0) {
                     flag = false;
                     if (debug == 1) {
-                        cout << q[i-1].name << " " << q[i-1].name << endl;
+                        //cout << q[i-1].name << " " << q[i-1].name << endl;
                     }
                     sy++;
                     //break;
