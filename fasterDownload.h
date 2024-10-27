@@ -11,6 +11,7 @@ using namespace std;
 bool comp[80000];
 long long jin[80000];
 bool fatherj[80000][5000];
+int downcount;
 bool cand=false;
 
 size_t WriteData(void* ptr, size_t size, size_t nmemb, std::ofstream* stream)
@@ -20,7 +21,7 @@ size_t WriteData(void* ptr, size_t size, size_t nmemb, std::ofstream* stream)
 }
 
 // 分段下载函数
-bool DownloadSegment(const std::string& url, string name, long start, long end,int father,int meid)
+bool DownloadSegment(const std::string& url, string name, long start, long end,int father,int meid,bool re)
 {
     CURL* curl;
     CURLcode res;
@@ -46,6 +47,11 @@ bool DownloadSegment(const std::string& url, string name, long start, long end,i
 
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
+      //  curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 20L);
+
+        // 设置总请求超时时间为30秒
+       // curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+
         // 执行请求
         res = curl_easy_perform(curl);
 
@@ -54,9 +60,20 @@ bool DownloadSegment(const std::string& url, string name, long start, long end,i
 
         if (res != CURLE_OK) {
             std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+            if (!re) {
+                
+                DownloadSegment(url, name, start, end, father, meid, true);
+            }
+            else {
+                cout << "Try error" << endl;
+            }
+            
             cand = true;
             return false;
         }
+        outputnow.close();
+        fatherj[father][meid] = true;
+
         return true;
     }
     cand = true;
@@ -108,6 +125,8 @@ bool mergeFiles(const std::string& file1, const std::string& file2) {
     std::ofstream outFile(file1, std::ios::binary | std::ios::app);
 
     if (!inFile1.is_open() || !inFile2.is_open() || !outFile.is_open()) {
+        cout << "Merge error" << endl;
+        cand = true;
         return false;
     }
 
@@ -151,7 +170,7 @@ char* appeddp(const char* a, const char* b) {
 int download_thered(string m_url, string name, long long size, int id) {
     std::string url = m_url; // 替换为实际URL
     std::string output_filename = name;
-    long segment_size = 1024 * 512;
+    long segment_size = 1024 * 1024;
 
     // 获取文件大小
     long file_size = size;
@@ -184,7 +203,7 @@ int download_thered(string m_url, string name, long long size, int id) {
 
 
         //std::cout << endl<<"Downloading segment: " << start << "-" << end << std::endl;
-        thread(DownloadSegment, url, nowname, start, end, id, dld).detach();
+        thread(DownloadSegment, url, nowname, start, end, id, dld,false).detach();
         dld++;
         /*
         if (!DownloadSegment(url, outputnow, start, end,id,dld) ){
@@ -198,14 +217,55 @@ int download_thered(string m_url, string name, long long size, int id) {
         //jin[id] = end;
         
     }
-    
-    while (1) {
+   // cout << dld << endl;
 
+    bool add[8002];
+    memset(add, 0, sizeof(add));
+
+    while (1) {
+        bool flag = true;
+        for (int i = 1; i <= dld - 1; i++) {
+            if (fatherj[id][i] == false) {
+                flag = false;
+            }
+            else {
+                if (add[i] == false) {
+                    add[i] = true;
+                    if (i == dld - 1) {
+                        jin[id] += size % segment_size;
+                    }
+                    else {
+                        jin[id] += segment_size;
+                    }
+                    
+                }
+            }
+        }
+        if (flag) {
+            break;
+        }
+    }
+    //cout << "merge" << endl;
+    for (int i = 1; i <= dld - 1; i++) {
+        string next= output_filename + ".bak." + to_string(i);
+        //cout << next << endl;
+        mergeFiles(output_filename, next);
+        //rmfile(appeddp(next.c_str(), ""));
     }
 
+    Sleep(500);
+
+    for (int i = 1; i <= dld - 1; i++) {
+        string next = output_filename + ".bak." + to_string(i);
+        //cout << next << endl;
+        //mergeFiles(output_filename, next);
+        rmfile(appeddp(next.c_str(), ""));
+    }
 
     // 关闭输出文件
     output.close();
+    downcount--;
+    jin[id] = size;
     //std::cout << endl << id << "Download complete." << std::endl;
     comp[id] = true;
 
@@ -215,6 +275,32 @@ struct downloadinfo {
 	string name, url;
 	long long size;
 };
+
+
+void DONLOAD_thread(vector<downloadinfo> q) {
+    int i = 1;
+    downcount = 0;
+    for (auto it : q) {
+        if (downcount > 5) {
+            while (downcount > 5) {
+                //cout << downcount << endl;
+            }
+        }
+        
+       // cout << "Download  " << it.url << " " << it.name << " " << it.size << endl;
+        downcount++;
+        thread(download_thered, it.url, it.name, it.size, i).detach();
+        //thread(download_thered, it.url, it.name, it.size, i).join();
+        i++;
+
+        //downcount++;
+        if (cand == true) {
+            break;
+        }
+    }
+}
+
+
 
 class DOWNLOAD {
 public:
@@ -231,19 +317,25 @@ public:
 	void down() {
         memset(comp, 0, sizeof(comp));
         int i = 1;
+        /*
         for (auto it : q) {
             cout << "Download  " << it.url << " " << it.name << " " << it.size << endl;
-            thread(download_thered, it.url,it.name,it.size,i).detach();
+            thread(download_thered, it.url,it.name,it.size,i).join();
             //thread(download_thered, it.url, it.name, it.size, i).join();
             i++;
             if (cand == true) {
                 break;
             }
-        }
+        }*/
+        thread(DONLOAD_thread, q).detach();
         if (cand) {
             return;
         }
+        long long last = 0;
+        bool debug = 0;
         while(1){
+
+
 
             long long nowt = 0;
             for (int i = 1; i <= q.size(); i++) {
@@ -251,17 +343,25 @@ public:
             }
             printf("%.2lf", (nowt * 1.0 / totel * 1.0)*100);
             cout << "%   " << nowt << "/" << totel << " " ;
-
+            printf("%.2lf MB/s ", (nowt - last) * 1.0 / 1048576 * 1.0);
+            last = nowt;
             bool flag = true;
             long long sy = 0;
             for (int i = 1; i <= q.size(); i++) {
                 //cout << comp[i] << endl;
                 if (comp[i] == 0) {
                     flag = false;
+                    if (debug == 1) {
+                        cout << q[i-1].name << " " << q[i-1].name << endl;
+                    }
                     sy++;
                     //break;
                 }
             }
+            if (sy == 1) {
+                debug = 1;
+            }
+
             //5 files remaining
             cout << sy << "files remaining [";
             bool ff = false;
@@ -291,7 +391,7 @@ public:
                 cout << "Download error" << endl;
                 return;
             }
-            Sleep(100);
+            Sleep(1000);
         }
 	}
 	void get_q() {

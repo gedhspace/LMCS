@@ -480,7 +480,7 @@ void downloadmc(string verdov) {
      mkdir(appedd(".minecraft/assets/objects/", ttt.c_str()));
      mkdir(".minecraft/assets/objects/indexes");
 
-     k.Push(appedd(appedd(appedd("https://bmclapi2.bangbang93.com/assets/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob["minecraft/lang/zh_cn.json"]["size"]);
+     //k.Push(appedd(appedd(appedd("https://bmclapi2.bangbang93.com/assets/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob["minecraft/lang/zh_cn.json"]["size"]);
      /*
     for (auto it = ob.begin(); it != ob.end(); ++it) {
         //cout << it.key() << endl;
@@ -748,16 +748,17 @@ void init() {
 int main() {
     
     //init();
-    //downloadmc("1.20");
+    downloadmc("1.20");
     
     //nchminecraft();
    // mchide();
 
-    DOWNLOAD t;
+    //DOWNLOAD t;
     //https://bmclapi2.bangbang93.com/version/1.20/client
-    t.Push("https://bmclapi2.bangbang93.com/version/1.20/client", "test/client.jar", GetFileSize("https://bmclapi2.bangbang93.com/version/1.20/client"));
-    //t.Push("https://piston-data.mojang.com/v1/objects/99a809aa269b700df95ba6d07ff07a43d5af4462/client.jar", "test/client.jar", 27843204);
-    t.down();
+    
+    //t.Push("https://piston-data.mojang.com/v1/objects/0b48c22e8ed722bcae66e25a03531409681e648b/client.jar", "test/client.jar", 27403978);
+    
+    //t.down();
 
     return 0;
 }
