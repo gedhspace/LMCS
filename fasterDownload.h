@@ -11,7 +11,9 @@ using namespace std;
 bool comp[80000];
 long long jin[80000];
 bool fatherj[80000][5000];
+int net;
 int downcount;
+int threadcount;
 bool cand=false;
 
 size_t WriteData(void* ptr, size_t size, size_t nmemb, std::ofstream* stream)
@@ -23,12 +25,15 @@ size_t WriteData(void* ptr, size_t size, size_t nmemb, std::ofstream* stream)
 // 分段下载函数
 bool DownloadSegment(const std::string& url, string name, long start, long end,int father,int meid,bool re)
 {
+    //net++;
     CURL* curl;
     CURLcode res;
     ofstream outputnow(name, std::ios::binary);
 
     curl = curl_easy_init();
     if (curl) {
+        
+
         // 设置URL
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
@@ -63,20 +68,23 @@ bool DownloadSegment(const std::string& url, string name, long start, long end,i
             if (!re) {
                 
                 DownloadSegment(url, name, start, end, father, meid, true);
+
             }
             else {
                 cout << "Try error" << endl;
             }
-            
+            //net--;
             cand = true;
             return false;
         }
         outputnow.close();
         fatherj[father][meid] = true;
+        //net--;
 
         return true;
     }
     cand = true;
+    //net--;
     return false;
 }
 
@@ -190,7 +198,7 @@ int download_thered(string m_url, string name, long long size, int id) {
 
     int dld = 1;
 
-    
+    //int nowloadcount = 0;
 
     for (long start = 0; start < file_size; start += segment_size) {
         long end = start + segment_size - 1;
@@ -201,9 +209,12 @@ int download_thered(string m_url, string name, long long size, int id) {
         string nowname = output_filename + ".bak." + to_string(dld);
         //cout << nowname << endl;
 
+    
 
         //std::cout << endl<<"Downloading segment: " << start << "-" << end << std::endl;
+        threadcount++;
         thread(DownloadSegment, url, nowname, start, end, id, dld,false).detach();
+        //nowloadcount++;
         dld++;
         /*
         if (!DownloadSegment(url, outputnow, start, end,id,dld) ){
@@ -237,6 +248,7 @@ int download_thered(string m_url, string name, long long size, int id) {
                     else {
                         jin[id] += segment_size;
                     }
+                    threadcount--;
                     
                 }
             }
@@ -278,18 +290,22 @@ struct downloadinfo {
 
 
 void DONLOAD_thread(vector<downloadinfo> q) {
+    threadcount = 0;
     int i = 1;
     downcount = 0;
     for (auto it : q) {
-        if (downcount > 5) {
-            while (downcount > 5) {
+        if (downcount > 8) {
+            while (downcount > 8) {
                 //cout << downcount << endl;
+                Sleep(200);
             }
         }
         
        // cout << "Download  " << it.url << " " << it.name << " " << it.size << endl;
         downcount++;
+        threadcount++;
         thread(download_thered, it.url, it.name, it.size, i).detach();
+        threadcount--;
         //thread(download_thered, it.url, it.name, it.size, i).join();
         i++;
 
@@ -342,8 +358,10 @@ public:
                 nowt += jin[i];
             }
             printf("%.2lf", (nowt * 1.0 / totel * 1.0)*100);
-            cout << "%   " << nowt << "/" << totel << " " ;
+            cout << "%   " ;
+            printf("%.2lf/%.2lf ", nowt * 1.0 / 1048576 * 1.0, totel * 1.0 / 1048576 * 1.0);
             printf("%.2lf MB/s ", (nowt - last) * 1.0 / 1048576 * 1.0);
+            //cout << threadcount << " ";
             last = nowt;
             bool flag = true;
             long long sy = 0;

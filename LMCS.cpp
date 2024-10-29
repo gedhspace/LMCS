@@ -22,6 +22,7 @@
 #include <atlstr.h>
 //#include "CCurlDownloadMgr.h"
 #include "fasterDownload.h"
+#include "CCurlDownloadMgr.h"
 
 #pragma warning(disable:4996)
 #define myvi "0.0.0.5"
@@ -430,7 +431,7 @@ void downloadmc(string verdov) {
                 mkdir(appedd(".minecraft/libraries/", temp.c_str()));
                 string ad = mclibraries[i]["downloads"]["artifact"]["path"];
                 if (file_exists(appedd(".minecraft/libraries/", ad.c_str()))) {
-                    continue;
+                    //continue;
                 }
                 //thread t1(download, mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
                 //t1.detach();
@@ -455,7 +456,7 @@ void downloadmc(string verdov) {
             mkdir(appedd(".minecraft/libraries/", temp.c_str()));
             string ad = mclibraries[i]["downloads"]["artifact"]["path"];
             if (file_exists(appedd(".minecraft/libraries/", ad.c_str()))) {
-               continue;
+               //continue;
             }
             //thread t1(download, mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
             //t1.detach();
@@ -499,7 +500,7 @@ void downloadmc(string verdov) {
         //mgr.PushBack(task);
         
         //download(appedd(appedd(appedd("https://resources.download.minecraft.net/",ttt.c_str()),"/"),hash.c_str()), appedd(appedd(appedd(".minecraft/assets/", ttt.c_str()),"/"), hash.c_str()));
-        k.Push(appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob[it.key()]["size"]);
+        //k.Push(appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob[it.key()]["size"]);
     }
     
     k.down();
@@ -748,17 +749,21 @@ void init() {
 int main() {
     
     //init();
-    downloadmc("1.20");
+    //downloadmc("1.20");
     
-    //nchminecraft();
+    //lunchminecraft();
    // mchide();
 
-    //DOWNLOAD t;
+   // DOWNLOAD t;
     //https://bmclapi2.bangbang93.com/version/1.20/client
     
-    //t.Push("https://piston-data.mojang.com/v1/objects/0b48c22e8ed722bcae66e25a03531409681e648b/client.jar", "test/client.jar", 27403978);
+   // t.Push("https://piston-data.mojang.com/v1/objects/0b48c22e8ed722bcae66e25a03531409681e648b/client.jar", "test/client.jar", 27403978);
+
+
     
-    //t.down();
+
+    
+   // t.down();
 
     return 0;
 }
