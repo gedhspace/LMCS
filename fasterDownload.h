@@ -256,6 +256,7 @@ int download_thered(string m_url, string name, long long size, int id) {
         if (flag) {
             break;
         }
+        Sleep(500);
     }
     //cout << "merge" << endl;
     for (int i = 1; i <= dld - 1; i++) {
@@ -294,10 +295,10 @@ void DONLOAD_thread(vector<downloadinfo> q) {
     int i = 1;
     downcount = 0;
     for (auto it : q) {
-        if (downcount > 8) {
+        if(downcount > 8) {
             while (downcount > 8) {
-                //cout << downcount << endl;
-                Sleep(200);
+               //cout << downcount << endl;
+                Sleep(50);
             }
         }
         

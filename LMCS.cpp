@@ -749,7 +749,7 @@ void init() {
 int main() {
     
     //init();
-    //downloadmc("1.20");
+    downloadmc("1.20");
     
     //lunchminecraft();
    // mchide();
