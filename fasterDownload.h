@@ -15,6 +15,9 @@ int net;
 int downcount;
 int threadcount;
 bool cand=false;
+int speed = 0;
+bool isdown = false;
+
 
 size_t WriteData(void* ptr, size_t size, size_t nmemb, std::ofstream* stream)
 {
@@ -298,7 +301,7 @@ void DONLOAD_thread(vector<downloadinfo> q) {
         if(downcount > 8) {
             while (downcount > 8) {
                //cout << downcount << endl;
-                Sleep(50);
+                Sleep(200);
             }
         }
         

@@ -23,6 +23,7 @@
 //#include "CCurlDownloadMgr.h"
 #include "fasterDownload.h"
 #include "CCurlDownloadMgr.h"
+#include "MinecraftUser.h"
 
 #pragma warning(disable:4996)
 #define myvi "0.0.0.5"
@@ -35,6 +36,9 @@ using namespace std;
 
 using json = nlohmann::json;
 
+
+bool isrun = false;
+bool ishide = false;
 
 typedef void (*Func)(void);
 
@@ -487,6 +491,12 @@ void downloadmc(string verdov) {
         //cout << it.key() << endl;
         string hash = ob[it.key()]["hash"];
         string ttt(hash.c_str(), 2);
+        
+        if (it.key().find(".ogg") != -1) {
+            continue;
+        }
+        
+
         if (file_exists(appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()))) {
             //continue;
         }
@@ -500,7 +510,7 @@ void downloadmc(string verdov) {
         //mgr.PushBack(task);
         
         //download(appedd(appedd(appedd("https://resources.download.minecraft.net/",ttt.c_str()),"/"),hash.c_str()), appedd(appedd(appedd(".minecraft/assets/", ttt.c_str()),"/"), hash.c_str()));
-        //k.Push(appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob[it.key()]["size"]);
+        k.Push(appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob[it.key()]["size"]);
     }
     
     k.down();
@@ -588,10 +598,20 @@ void lunchminecraft() {
     }
     alljar=alljar+";"+mcjar;
     //cout << alljar << endl;
-    string username;
-    cout << "玩家名:";
-    getline(cin, username);
-    commad = commad + alljar+" net.minecraft.client.main.Main"+" --username "+username+" --version "+lunchver+" --gameDir "+runPath+".minecraft" + " --assetsDir E : \\LMCS\\LMCS\\.minecraft\\assets --assetIndex 5 --uuid 15d1e1a1eede398095f5bbe7c9a50059 --accessToken 0d3b63b38fe24f06babbf3ebd9e70b6f --clientId ${clientid} --xuid ${auth_xuid} --userType msa --versionType \"LMCS\" --width 854 --height 480";
+    if (startname == "None") {
+        cout << "未设置玩家名" << endl;
+        return;
+    }
+    string username=startname;
+    
+    string uuid;
+    uuid = Getuuid(username);
+    if (uuid == "Not Found") {
+        CreatUser(1, username);
+        uuid = Getuuid(username);
+    }
+    
+    commad = commad + alljar+" net.minecraft.client.main.Main"+" --username "+username+" --version "+lunchver+" --gameDir "+runPath+".minecraft" + " --assetsDir E:\\LMCS\\LMCS\\.minecraft\\assets --assetIndex 5 --uuid "+uuid+" --accessToken "+uuid +" --clientId ${clientid} --xuid ${auth_xuid} --userType msa --versionType \"LMCS\" --width 854 --height 480";
 
 
    cout << commad.c_str() << endl;
@@ -616,130 +636,28 @@ void mchide(){
 
 }
 
-int menu() {
-    cout << ">+启动" << endl;
-    cout << " +下载" << endl;
-    cout << " +检查更新" << endl;
-    cout << " +启动Minecraft隐藏程序" << endl;
-    cout << " +注入极域dll" << endl;
-    int wz = 1;
-    while (true) {
-        if (IsKeyPressed(40)) {
-            wz++;
-            if (wz == 6) {
-                wz = 5;
-            }
-            while(IsKeyPressed(40)){}
+void menu() {
+    system("cls");
+    print_logo();
+    cout << "*************************************************************************************" <<endl;
+    cout << "状态" << endl;
+    cout << "Minecraft是否运行:" << (isrun == 0 ? "否" : "是") <<"                  *" << endl;
+    cout << "Minecraft隐藏是否启动:" << (ishide == 0 ? "否" : "是") <<"             *" << endl;
+    cout << "Minecraft是否下载:" << (isdown == 0 ? "否" : "是") << "                *" << endl;
+    cout << "Minecraft下载速度:" << speed << "MB/s                                  *" << endl;
+    cout << "Minecraft启动账号:" << startname << "                                  *" << endl;
+    cout << "极域运行状态:" << (ishide == 0 ? "否" : "是") << "                     *" << endl;
 
-            system("cls");
-            print_logo();
-            if (wz == 1) {
-                cout << ">+启动" << endl;
-            }
-            else {
-                cout << " +启动" << endl;
-            }
 
-            if (wz == 2) {
-                cout << ">+下载" << endl;
-            }
-            else {
-                cout << " +下载" << endl;
-            }
-
-            if (wz == 3) {
-                cout << ">+检查更新" << endl;
-            }
-            else {
-                cout << " +检查更新" << endl;
-            }
-
-            if (wz == 4) {
-                cout << ">+启动Minecraft隐藏程序" << endl;
-            }
-            else {
-                cout << " +启动Minecraft隐藏程序" << endl;
-            }
-
-            if (wz == 5) {
-                cout << ">+注入极域dll" << endl;
-            }
-            else {
-                cout << " +注入极域dll" << endl;
-            }
-        }
-        if (IsKeyPressed(38)) {
-            wz--;
-            if (wz == 0) {
-                wz = 1;
-            }
-            while (IsKeyPressed(38)) {}
-
-            system("cls");
-            print_logo();
-            if (wz == 1) {
-                cout << ">+启动" << endl;
-            }
-            else {
-                cout << " +启动" << endl;
-            }
-
-            if (wz == 2) {
-                cout << ">+下载" << endl;
-            }
-            else {
-                cout << " +下载" << endl;
-            }
-
-            if (wz == 3) {
-                cout << ">+检查更新" << endl;
-            }
-            else {
-                cout << " +检查更新" << endl;
-            }
-
-            if (wz == 4) {
-                cout << ">+启动Minecraft隐藏程序" << endl;
-            }
-            else {
-                cout << " +启动Minecraft隐藏程序" << endl;
-            }
-
-            if (wz == 5) {
-                cout << ">+注入极域dll" << endl;
-            }
-            else {
-                cout << " +注入极域dll" << endl;
-            }
-        }
-        if (IsKeyPressed(VK_RETURN)) {
-            if (wz == 1) {
-                string ver;
-                cout << "版本号:";
-                cin >> ver;
-
-                downloadmc(ver);
-            }
-            if (wz == 2) {
-                lunchminecraft();
-            }
-            if (wz == 3) {
-                checkupdata();
-            }
-            if (wz == 4) {
-                thread(mchide).detach();
-            }
-        }
-
-    }
 }
 void init() {
     print_logo();
 
 
     cout << "正在检查更新..." << endl;
-    checkupdata();
+    //checkupdata();
     cout << "LMCS正在启动..." << endl;
+    Getstartname();
     Sleep(1000);
     system("cls");
     print_logo();
@@ -748,8 +666,10 @@ void init() {
 
 int main() {
     
-    //init();
-    downloadmc("1.20");
+   system("mode con cols=120 lines=40");
+    init();
+   // CreatUser(1, "1");
+    //downloadmc("1.20");
     
     //lunchminecraft();
    // mchide();
