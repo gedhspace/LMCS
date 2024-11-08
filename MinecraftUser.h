@@ -5,6 +5,7 @@
 #include <random>
 #include <string>
 #include "json.hpp"
+#include "base.h"
 
 using namespace std;
 
@@ -12,27 +13,7 @@ using json = nlohmann::json;
 
 string startname;
 
-bool file_exists_m(const char* filename) {
-    FILE* file = fopen(filename, "r");
-    if (file != nullptr) {
-        fclose(file);
-        return true;
-    }
-    return false;
-}
 
-string getFileContent_m(const std::string& filePath) {
-    std::ifstream file(filePath);
-    if (file.is_open()) {
-        std::string content((std::istreambuf_iterator<char>(file)),
-            (std::istreambuf_iterator<char>()));
-        file.close();
-        return content;
-    }
-    else {
-        throw std::runtime_error("Unable to open file.");
-    }
-}
 
 unsigned int random_char() {
     std::random_device rd;
@@ -55,10 +36,10 @@ std::string generate_hex(const unsigned int len) {
 
 string Getuuid(string name) {
 
-        if (file_exists_m("minecraftuser.lmcs.json")) {
+        if (file_exists("minecraftuser.lmcs.json")) {
            // cout << getFileContent_m("minecraftuser.lmcs.json") << endl;
             
-            json data=json::parse(getFileContent_m("minecraftuser.lmcs.json").c_str());
+            json data=json::parse(getFileContent("minecraftuser.lmcs.json").c_str());
             string re;
             if (data.contains(name)) {
                 re = data[name];
@@ -81,8 +62,8 @@ string Getuuid(string name) {
 }
 
 bool CreatUser(int p, string name) {
-    if (file_exists_m("minecraftuser.lmcs.json")) {
-        string now=getFileContent_m("minecraftuser.lmcs.json");
+    if (file_exists("minecraftuser.lmcs.json")) {
+        string now=getFileContent("minecraftuser.lmcs.json");
         json data = json::parse(now.c_str());
         data[name] = generate_hex(16);
         data["lastest"] = name;
@@ -102,8 +83,8 @@ bool CreatUser(int p, string name) {
 }
 
 void Getstartname() {
-    if (file_exists_m("minecraftuser.lmcs.json")) {
-        string now = getFileContent_m("minecraftuser.lmcs.json");
+    if (file_exists("minecraftuser.lmcs.json")) {
+        string now = getFileContent("minecraftuser.lmcs.json");
 
         json data = json::parse(now.c_str());
         if (data.contains("lastest")) {
@@ -123,4 +104,12 @@ void Getstartname() {
         startname = "None";
 
     }
+}
+
+
+void MincosoftLogin() {
+    //GetUUID
+
+    system("start https://login.live.com/oauth20_authorize.srf?client_id=00000000402b5328&response_type=code&scope=service%3A%3Auser.auth.xboxlive.com%3A%3AMBI_SSL&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf");
+
 }

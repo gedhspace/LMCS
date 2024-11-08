@@ -24,6 +24,13 @@
 #include "fasterDownload.h"
 #include "CCurlDownloadMgr.h"
 #include "MinecraftUser.h"
+#include "CommandUI.h"
+#include "Jiyu.h"
+#include "HttpServer.h"
+#include "base.h"
+#include "MinecraftDownload.h"
+#include "UI.h"
+
 
 #pragma warning(disable:4996)
 #define myvi "0.0.0.5"
@@ -37,94 +44,19 @@ using namespace std;
 using json = nlohmann::json;
 
 
-bool isrun = false;
-bool ishide = false;
+
 
 typedef void (*Func)(void);
 
 string getweb(string);
 
-size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-    
-}
 
-struct version {
-    string version;
-    string jsonurl;
-    string type;
-    string time;
-    string releaseTime;
-};
 
 
 bool IsKeyPressed(unsigned int key) {
     return (GetAsyncKeyState(key) & 0x8000) != 0;
 }
 
-char* appedd(const char* a,const char* b) {
-    const char* str1 = a;
-    const char* str2 = b;
-    size_t len1 = strlen(str1);
-    size_t len2 = strlen(str2);
-    size_t new_length = len1 + len2 + 1;
-    char* result = new char[new_length];
-    strcpy(result, str1);
-    strcat(result, str2);
-    return result;
-}
-
-bool file_exists(const char* filename) {
-    FILE* file = fopen(filename, "r");
-    if (file != nullptr) {
-        fclose(file);
-        return true;
-    }
-    return false;
-}
-
-string getFileContent(const std::string& filePath) {
-    std::ifstream file(filePath);
-    if (file.is_open()) {
-        std::string content((std::istreambuf_iterator<char>(file)),
-            (std::istreambuf_iterator<char>()));
-        file.close();
-        return content;
-    }
-    else {
-        throw std::runtime_error("Unable to open file.");
-    }
-}
-
-
-void mkdir(char path[]) {
-
-    
-
-    int mode = 0; // 判定目录或文件是否存在的标识符
-
-    if (!_access(path, mode))
-    {
-        return;
-    }
-    
-    
-
-    for (int i = 0; path[i]; i++) {
-        if (path[i] == '/') {
-            path[i] = PATH_SEPARATOR;
-        }
-
-    }
-
-    // 创建目录命令的字符串
-    char mkdir_command[1024];
-    sprintf(mkdir_command, "mkdir %s", path);
-
-    // 调用系统命令
-    system(mkdir_command);
-}
 
 // 写入数据的回调函数
 /*
@@ -293,69 +225,8 @@ string checkupdata() {
     return "";
 }
 
-string getweb(string url) {
-    CURL* curl;
-    CURLcode res;
-    std::string readBuffer;
-
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    curl = curl_easy_init();
-
-    if (curl) {
-        
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        struct curl_slist* headers = NULL;
-        headers = curl_slist_append(headers, "Accept: application/json");
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        //User-Agent
-        headers = curl_slist_append(headers, "User-Agent: LMCS-get");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
 
-        res = curl_easy_perform(curl);
-
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-        }
-        else {
-            
-            return readBuffer;
-        }
-
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-        
-    }
-
-    curl_global_cleanup();
-}
-
-vector<version> getversions() {
-    vector<version> ve;
-    json data = json::parse(getweb("http://launchermeta.mojang.com/mc/game/version_manifest.json").c_str());
-    //cout << getweb("https://bmclapi2.bangbang93.com/mc/game/version_manifest.json") << endl;
-    //json data = json::parse(getweb("https://bmclapi2.bangbang93.com/mc/game/version_manifest.json").c_str());
-    //string tmp = data["versions"];
-    //cout << data << endl;
-    json vi = data["versions"];
-    //cout << vi.size() << endl;
-    for (unsigned int i = 0; i < vi.size(); i++)
-    {
-        version tmp;
-        tmp.version = vi[i]["id"];
-        tmp.jsonurl = vi[i]["url"];
-        tmp.releaseTime = vi[i]["releaseTime"];
-        tmp.type = vi[i]["type"];
-        tmp.time = vi[i]["time"];
-        ve.push_back(tmp);
-    }
-
-    return ve;
-}
 
 void print_logo() {
     cout << "|                     |\\                            /      --------      --- -------- " << endl;
@@ -369,158 +240,6 @@ void print_logo() {
     cout << "|\\\\\\\\\\\\\\\              |                \\/           |      --------      ----------" << endl << endl << endl;
 }
 
-void downloadmc(string verdov) {
-    DOWNLOAD k;
-
-    //curl_global_init(CURL_GLOBAL_ALL);
-    //CCurlDownloadMgr mgr;
-    //CCurlDownload task;
-    vector<version> ve = getversions();
-    string dov =verdov;
-    string mcjson="";
-    for (auto i : ve) {
-        if (i.version == dov) {
-            mcjson = i.jsonurl;
-        }
-        //cout << i.version << endl;
-    }
-    //cout << mcjson << endl;
-
-    json mcjsondata = json::parse(getweb(mcjson));
-    //cout << mcjsondata << endl;
-    
-    CreateDirectory(".minecraft", NULL);
-    CreateDirectory(".minecraft/versions", NULL);
-    CreateDirectory(".minecraft/assets", NULL);
-    CreateDirectory(".minecraft/libraries", NULL);
-
-    string mcassetjsonurl = mcjsondata["assetIndex"]["url"];
-    //cout << mcjsondata["assetIndex"]["url"];
-
-    json mcassetjsondata = json::parse(getweb(mcassetjsonurl));
-
-    mkdir(appedd(".minecraft/versions/", dov.c_str()));
-    //thread t1(download, mcjsondata["downloads"]["client"]["url"], appedd(appedd(appedd(appedd(".minecraft/versions/", dov.c_str()), "/"), dov.c_str()), ".jar"));
-    //t1.detach();
-    //download(mcjsondata["downloads"]["client"]["url"], appedd(appedd(appedd(appedd(".minecraft/versions/", dov.c_str()),"/"), dov.c_str()),".jar"));
-    //task.SetDownloadInfo(mcjsondata["downloads"]["client"]["url"], appedd(appedd(appedd(appedd(".minecraft/versions/", dov.c_str()), "/"), dov.c_str()), ".jar"), 6);
-   // mgr.PushBack(task);
-   
-    //k.Push(appedd(appedd(appedd("https://bmclapi2.bangbang93.com/version/", dov.c_str()), "/"), "client"), appedd(appedd(appedd(appedd(".minecraft/versions/", dov.c_str()), "/"), dov.c_str()), ".jar"), mcjsondata["downloads"]["client"]["size"]);
-    k.Push(mcjson, appedd(appedd(appedd(appedd(".minecraft/versions/", dov.c_str()), "/"), dov.c_str()), ".json"), GetFileSize(mcjson));
-    k.Push(mcjsondata["downloads"]["client"]["url"], appedd(appedd(appedd(appedd(".minecraft/versions/", dov.c_str()), "/"), dov.c_str()), ".jar"), mcjsondata["downloads"]["client"]["size"]);
-    json mclibraries = mcjsondata["libraries"];
-   
-
-    
-    
-    for (int i = 0; i < mclibraries.size(); i++) {
-        //cout << mclibraries[i]["downloads"]["artifact"]["url"] << endl;
-        if (mclibraries[i].contains("rules")){
-            //cout << mclibraries[i]["rules"] << endl;
-            if (mclibraries[i]["rules"].dump().find("windows") != -1) {
-                
-                string temp = mclibraries[i]["downloads"]["artifact"]["path"];
-                //cout << temp << endl;
-                int mmmax = -1;
-                for (int j = 1; j < temp.size(); j++) {
-                    if (temp[j] == '/') {
-                        mmmax = max(mmmax, j);
-                    }
-                }
-               // cout << mmmax << endl;
-                temp.erase(temp.begin()+mmmax,temp.end());
-                //cout << temp << endl;
-                //cout << appedd(".minecraft/libraries/", temp.c_str()) << endl;
-                mkdir(appedd(".minecraft/libraries/", temp.c_str()));
-                string ad = mclibraries[i]["downloads"]["artifact"]["path"];
-                if (file_exists(appedd(".minecraft/libraries/", ad.c_str()))) {
-                    //continue;
-                }
-                //thread t1(download, mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
-                //t1.detach();
-              //  task.SetDownloadInfo(mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()), 6);
-               // mgr.PushBack(task);
-                //download(mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
-                k.Push(mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()), mclibraries[i]["downloads"]["artifact"]["size"]);
-            }
-        }else{
-            string temp = mclibraries[i]["downloads"]["artifact"]["path"];
-            //cout << temp << endl;
-            int mmmax = -1;
-            for (int j = 0; j < temp.size(); j++) {
-                if (temp[j] == '/') {
-                    mmmax = max(mmmax, j);
-                }
-            }
-            //cout << mmmax << endl;
-            temp.erase(temp.begin() + mmmax, temp.end());
-            //cout << temp << endl;
-           // cout << appedd(".minecraft/libraries/", temp.c_str()) << endl;
-            mkdir(appedd(".minecraft/libraries/", temp.c_str()));
-            string ad = mclibraries[i]["downloads"]["artifact"]["path"];
-            if (file_exists(appedd(".minecraft/libraries/", ad.c_str()))) {
-               //continue;
-            }
-            //thread t1(download, mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
-            //t1.detach();
-           // task.SetDownloadInfo(mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()), 6);
-           // mgr.PushBack(task);
-            //download(mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()));
-            k.Push(mclibraries[i]["downloads"]["artifact"]["url"], appedd(".minecraft/libraries/", ad.c_str()), mclibraries[i]["downloads"]["artifact"]["size"]);
-            
-        }
-    }
-   // cout << "1";
-   
-   
-
-    //library ok
-    
-    json ob = mcassetjsondata["objects"];
-    //cout << ob << endl;
-    //cout << ob["icons/icon_128x128.png"];
-    //string hash = ob["minecraft/lang/zh_cn.json"]["hash"];
-    //string ttt(hash.c_str(), 2);
-    // mkdir(appedd(".minecraft/assets/objects/", ttt.c_str()));
-    // mkdir(".minecraft/assets/objects/indexes");
-
-     //k.Push(appedd(appedd(appedd("https://bmclapi2.bangbang93.com/assets/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob["minecraft/lang/zh_cn.json"]["size"]);
-     
-    for (auto it = ob.begin(); it != ob.end(); ++it) {
-        //cout << it.key() << endl;
-        string hash = ob[it.key()]["hash"];
-        string ttt(hash.c_str(), 2);
-        
-        if (it.key().find(".ogg") != -1) {
-            continue;
-        }
-        
-
-        if (file_exists(appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()))) {
-            //continue;
-        }
-        //cout << ttt << endl;
-        // 
-        mkdir(appedd(".minecraft/assets/objects/", ttt.c_str()));
-        // 
-        //cout << appedd(appedd(appedd(".minecraft/assets/", ttt.c_str()), "/"), hash.c_str()) << endl;
-        //cout << appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()) << endl;
-        //task.SetDownloadInfo(appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/", ttt.c_str()), "/"), hash.c_str()), 6);
-        //mgr.PushBack(task);
-        
-        //download(appedd(appedd(appedd("https://resources.download.minecraft.net/",ttt.c_str()),"/"),hash.c_str()), appedd(appedd(appedd(".minecraft/assets/", ttt.c_str()),"/"), hash.c_str()));
-        k.Push(appedd(appedd(appedd("https://resources.download.minecraft.net/", ttt.c_str()), "/"), hash.c_str()), appedd(appedd(appedd(".minecraft/assets/objects/", ttt.c_str()), "/"), hash.c_str()), ob[it.key()]["size"]);
-    }
-    
-    k.down();
-    /*
-    mgr.StartDownload([](long long dlNow, long long dlTotal, double lfProgress) {
-        _tprintf(_T("%.2lf%% %lld/%lld\n"), lfProgress * 100, dlNow, dlTotal);
-        });
-   
-    curl_global_cleanup();*/
-}
 
 void lunchminecraft() {
 
@@ -636,19 +355,55 @@ void mchide(){
 
 }
 
-void menu() {
-    system("cls");
+void choss_menu(int wz) {
+    gotoxy(13, statusright + chossadd);cout << (wz == 1 ? ">" : " ") << "下载游戏" << endl;
+    gotoxy(14, statusright + chossadd); cout << (wz == 2 ? ">" : " ") << "启动游戏" << endl;
+    gotoxy(15, statusright + chossadd); cout << (wz == 3 ? ">" : " ") << "启动Minecraft隐藏程序" << endl;
+    gotoxy(16, statusright + chossadd); cout << (wz == 4 ? ">" : " ") << "检查更新"<<endl ;
+    gotoxy(17, statusright + chossadd); cout << (wz == 5 ? ">" : " ") << "注入极域Dll" ;
+    cout << endl << endl;
+    //gotoxy(100, 100);
+    
+}
+
+void menu_print(int p) {
+    //system("cls");
     print_logo();
     cout << "*************************************************************************************" <<endl;
-    cout << "状态" << endl;
-    cout << "Minecraft是否运行:" << (isrun == 0 ? "否" : "是") <<"                  *" << endl;
-    cout << "Minecraft隐藏是否启动:" << (ishide == 0 ? "否" : "是") <<"             *" << endl;
-    cout << "Minecraft是否下载:" << (isdown == 0 ? "否" : "是") << "                *" << endl;
-    cout << "Minecraft下载速度:" << speed << "MB/s                                  *" << endl;
-    cout << "Minecraft启动账号:" << startname << "                                  *" << endl;
-    cout << "极域运行状态:" << (ishide == 0 ? "否" : "是") << "                     *" << endl;
+    cout << "状态" << endl; gotoxy(12, statusright); cout << "* 选项" << endl;
+    cout << "Minecraft是否运行:" << (isrun == 0 ? "否" : "是"); gotoxy(13, statusright); cout << "*" << endl;
+    cout << "Minecraft隐藏是否启动:" << (ishide == 0 ? "否" : "是"); gotoxy(14, statusright); cout << "*" << endl;
+    cout << "Minecraft是否下载:" << (isdown == 0 ? "否" : "是"); gotoxy(15, statusright); cout << "*" << endl;
+    cout << "Minecraft下载速度:"; printf("%.2lfMB/s", speed); gotoxy(16, statusright); cout << "*" << endl;
+    cout << "Minecraft启动账号:" << startname; gotoxy(17, statusright); cout << "*" << endl;
+    cout << "极域运行状态:" << (jiyurun == 0 ? "否" : "是"); gotoxy(18, statusright); cout << "*" << endl;
+
+    choss_menu(p);
 
 
+}
+
+void menu() {
+    int wz = 1;
+    while (true) {
+        if (KEY_DOWN(VK_DOWN)) {
+            wz++;
+            if (wz > chosscount) {
+                wz = chosscount;
+            }
+            while(KEY_DOWN(VK_DOWN)){}
+        }
+        if (KEY_DOWN(VK_UP)) {
+            wz--;
+            if (wz < 1) {
+                wz = 1;
+            }
+
+            while (KEY_DOWN(VK_UP)) {}
+        }
+        gotoxy(0, 0);
+        menu_print(wz);
+    }
 }
 void init() {
     print_logo();
@@ -658,16 +413,19 @@ void init() {
     //checkupdata();
     cout << "LMCS正在启动..." << endl;
     Getstartname();
-    Sleep(1000);
+    //Sleep(1000);
     system("cls");
     print_logo();
+
+    
+
     menu();
 }
 
 int main() {
     
-   system("mode con cols=120 lines=40");
-    init();
+   //system("mode con cols=120 lines=40");
+    //init();
    // CreatUser(1, "1");
     //downloadmc("1.20");
     
@@ -679,9 +437,9 @@ int main() {
     
    // t.Push("https://piston-data.mojang.com/v1/objects/0b48c22e8ed722bcae66e25a03531409681e648b/client.jar", "test/client.jar", 27403978);
 
-
-    
-
+   web_start();
+  // downloadmc("1.20");
+  // MincosoftLogin();
     
    // t.down();
 

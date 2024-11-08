@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <windows.h>
+#include "base.h"
 #pragma warning(disable : 4996)
 #include <curl/curl.h>
 #define PATH_SEPARATOR '/'
@@ -15,7 +16,7 @@ int net;
 int downcount;
 int threadcount;
 bool cand=false;
-int speed = 0;
+double speed = 0;
 bool isdown = false;
 
 
@@ -130,53 +131,7 @@ long GetFileSize(const std::string& url)
     return -1;
 }
 
-bool mergeFiles(const std::string& file1, const std::string& file2) {
-    std::ifstream inFile1(file1, std::ios::binary);
-    std::ifstream inFile2(file2, std::ios::binary);
-    std::ofstream outFile(file1, std::ios::binary | std::ios::app);
 
-    if (!inFile1.is_open() || !inFile2.is_open() || !outFile.is_open()) {
-        cout << "Merge error" << endl;
-        cand = true;
-        return false;
-    }
-
-    outFile << inFile2.rdbuf();
-
-    inFile1.close();
-    inFile2.close();
-    outFile.close();
-
-    return true;
-}
-
-void rmfile(char path[]) {
-    for (int i = 0; path[i]; i++) {
-        if (path[i] == '/') {
-            path[i] = PATH_SEPARATOR;
-        }
-
-    }
-
-    // 创建目录命令的字符串
-    char mkdir_command[1024];
-    sprintf(mkdir_command, "del %s", path);
-
-    // 调用系统命令
-    system(mkdir_command);
-}
-
-char* appeddp(const char* a, const char* b) {
-    const char* str1 = a;
-    const char* str2 = b;
-    size_t len1 = strlen(str1);
-    size_t len2 = strlen(str2);
-    size_t new_length = len1 + len2 + 1;
-    char* result = new char[new_length];
-    strcpy(result, str1);
-    strcat(result, str2);
-    return result;
-}
 
 int download_thered(string m_url, string name, long long size, int id) {
     std::string url = m_url; // 替换为实际URL
@@ -265,7 +220,10 @@ int download_thered(string m_url, string name, long long size, int id) {
     for (int i = 1; i <= dld - 1; i++) {
         string next= output_filename + ".bak." + to_string(i);
         //cout << next << endl;
-        mergeFiles(output_filename, next);
+        if (mergeFiles(output_filename, next) == false) {
+            cand = true;
+        }
+        //mergeFiles(output_filename, next);
         //rmfile(appeddp(next.c_str(), ""));
     }
 
@@ -275,7 +233,7 @@ int download_thered(string m_url, string name, long long size, int id) {
         string next = output_filename + ".bak." + to_string(i);
         //cout << next << endl;
         //mergeFiles(output_filename, next);
-        rmfile(appeddp(next.c_str(), ""));
+        rmfile(appedd(next.c_str(), ""));
     }
 
     // 关闭输出文件
@@ -335,6 +293,12 @@ public:
         cand = false;
     }
 	void down() {
+        if (isdown == true) {
+            cout << "Something is downloading." << endl;
+            return;
+        }
+        isdown = true;
+
         memset(comp, 0, sizeof(comp));
         int i = 1;
         /*
@@ -365,6 +329,7 @@ public:
             cout << "%   " ;
             printf("%.2lf/%.2lf ", nowt * 1.0 / 1048576 * 1.0, totel * 1.0 / 1048576 * 1.0);
             printf("%.2lf MB/s ", (nowt - last) * 1.0 / 1048576 * 1.0);
+            speed = (nowt - last) * 1.0 / 1048576 * 1.0;
             //cout << threadcount << " ";
             last = nowt;
             bool flag = true;
@@ -385,8 +350,9 @@ public:
             }
 
             //5 files remaining
-            cout << sy << "files remaining [";
+            cout << sy << "files remaining ";
             bool ff = false;
+            /*
             for (int i = 1; i <= 80; i++) {
                 if ((nowt * 1.0 / totel * 1.0) * 100 >= i * 1.25) {
                     cout << "=";
@@ -404,12 +370,15 @@ public:
                     
                 }
             }
-            cout <<"]" << endl;
+            cout <<"]" << endl;*/
+            cout << endl;
             if (flag) {
                 cout << "Download complete." << endl;
+                isdown = false;
                 return;
             }
             if (cand) {
+                isdown = false;
                 cout << "Download error" << endl;
                 return;
             }
@@ -418,7 +387,7 @@ public:
 	}
 	void get_q() {
 		for (auto i : q) {
-			cout << i.url << endl;
+			//cout << i.url << endl;
 		}
 	}
 	void Push(string m_url, string m_name, long long m_size) {
