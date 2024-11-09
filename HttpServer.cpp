@@ -2,6 +2,7 @@
 #include <corecrt_io.h>
 #include <fstream>
 #include<string>
+#include <thread>
 //#include <io.h>
 #pragma warning(disable : 4996)
 using namespace std;
@@ -40,7 +41,7 @@ HttpServer::HttpServer(int port) : port(port) {
 }
 
 void HttpServer::start() {
-    std::cout << "Server is running on port " << port << std::endl;
+    std::cout << "Server is running on port " << port << ".open http://127.0.0.1:"<<port << std::endl;
 
     while (true) {
         int client_fd = accept(server_fd, nullptr, nullptr);
