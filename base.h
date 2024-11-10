@@ -2,6 +2,7 @@
 #include<iostream>
 #include <fstream>
 #include <io.h>
+#include <curl/curl.h>
 
 #define PATH_SEPARATOR '/'
 #define PATH_SEPARATOR '\\'

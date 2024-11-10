@@ -432,16 +432,16 @@ int main() {
     //lunchminecraft();
    // mchide();
 
-   // DOWNLOAD t;
+    DOWNLOAD t;
     //https://bmclapi2.bangbang93.com/version/1.20/client
     
-   // t.Push("https://piston-data.mojang.com/v1/objects/0b48c22e8ed722bcae66e25a03531409681e648b/client.jar", "test/client.jar", 27403978);
+    t.Push("https://piston-data.mojang.com/v1/objects/0b48c22e8ed722bcae66e25a03531409681e648b/client.jar", "test/client.jar", 27403978);
 
-   web_start();
+   //web_start();
   // downloadmc("1.20");
   // MincosoftLogin();
     
-   // t.down();
+    t.down();
 
     return 0;
 }

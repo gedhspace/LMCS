@@ -3,6 +3,7 @@
 #include <fstream>
 #include<string>
 #include <thread>
+#include <future>
 //#include <io.h>
 #pragma warning(disable : 4996)
 using namespace std;
@@ -29,7 +30,9 @@ HttpServer::HttpServer(int port) : port(port) {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
 
-    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+    bind(server_fd, (struct sockaddr*)&address, sizeof(address));
+
+    if (0 < 0) {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
@@ -38,6 +41,19 @@ HttpServer::HttpServer(int port) : port(port) {
         perror("Listen failed");
         exit(EXIT_FAILURE);
     }
+}
+
+void HttpServer::handleClient(int client_fd, char buff[]) {
+    // char buffer[1024];
+
+    // memset(buffer, 0, sizeof(buffer));
+    // cout << client_fd;
+    // read(client_fd, buffer, sizeof(buffer));
+
+     //std::cout << "Received request:\n" << buffer << std::endl;
+
+    std::string response = getResponse(buff);
+    send(client_fd, response.c_str(), response.size(), 0);
 }
 
 void HttpServer::start() {
@@ -53,7 +69,7 @@ void HttpServer::start() {
         memset(buff, 0, sizeof(buff));
         int len = recv(client_fd, buff, sizeof(buff), 0);
        // cout << buff << endl;
-        handleClient(client_fd,buff);
+        thread::thread(mem_fn(&HttpServer::handleClient),client_fd,buff);
         //close(client_fd);
     }
 }
@@ -63,18 +79,7 @@ void HttpServer::SetRep(string(*func)(string))
     getResponse = func;
 }
 
-void HttpServer::handleClient(int client_fd,char buff[]) {
-   // char buffer[1024];
 
-   // memset(buffer, 0, sizeof(buffer));
-   // cout << client_fd;
-   // read(client_fd, buffer, sizeof(buffer));
-
-    //std::cout << "Received request:\n" << buffer << std::endl;
-
-    std::string response = getResponse(buff);
-    send(client_fd, response.c_str(), response.size(), 0);
-}
 
 
 

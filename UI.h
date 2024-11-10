@@ -4,6 +4,10 @@
 #include <iostream>
 #include <thread>
 #include <string>
+#include <vector>
+#include "MinecraftDownload.h"
+#include "Jiyu.h"
+#include "MinecraftUser.h"
 
 using namespace std;
 

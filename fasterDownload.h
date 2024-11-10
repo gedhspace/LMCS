@@ -9,88 +9,12 @@
 #define PATH_SEPARATOR '\\'
 using namespace std;
 
-bool comp[80000];
-long long jin[80000];
-bool fatherj[80000][5000];
-int net;
-int downcount;
-int threadcount;
-bool cand=false;
+
 double speed = 0;
 bool isdown = false;
 
 
-size_t WriteData(void* ptr, size_t size, size_t nmemb, std::ofstream* stream)
-{
-    stream->write(static_cast<char*>(ptr), size * nmemb);
-    return size * nmemb;
-}
 
-// 分段下载函数
-bool DownloadSegment(const std::string& url, string name, long start, long end,int father,int meid,bool re)
-{
-    //net++;
-    CURL* curl;
-    CURLcode res;
-    ofstream outputnow(name, std::ios::binary);
-
-    curl = curl_easy_init();
-    if (curl) {
-        
-
-        // 设置URL
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-
-        // 设置Range头
-        std::string range = std::to_string(start) + "-" + std::to_string(end);
-        curl_easy_setopt(curl, CURLOPT_RANGE, range.c_str());
-
-        // 设置写入数据的回调函数
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteData);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &outputnow);
-        
-
-        // 设置SSL选项
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // 验证服务器的SSL证书
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // 验证证书上的主机名
-
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-      //  curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 20L);
-
-        // 设置总请求超时时间为30秒
-       // curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
-
-        // 执行请求
-        res = curl_easy_perform(curl);
-
-        // 清理
-        curl_easy_cleanup(curl);
-
-        if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-            if (!re) {
-                
-                DownloadSegment(url, name, start, end, father, meid, true);
-
-            }
-            else {
-                cout << "Try error" << endl;
-            }
-            //net--;
-            cand = true;
-            return false;
-        }
-        outputnow.close();
-        fatherj[father][meid] = true;
-        //net--;
-
-        return true;
-    }
-    cand = true;
-    //net--;
-    return false;
-}
 
 
 
@@ -133,117 +57,7 @@ long GetFileSize(const std::string& url)
 
 
 
-int download_thered(string m_url, string name, long long size, int id) {
-    std::string url = m_url; // 替换为实际URL
-    std::string output_filename = name;
-    long segment_size = 1024 * 1024;
 
-    // 获取文件大小
-    long file_size = size;
-
-    //std::cout <<endl <<"File size: " << file_size << " bytes" << std::endl;
-
-    // 打开输出文件
-    std::ofstream output(output_filename, std::ios::binary);
-    if (!output.is_open()) {
-        std::cerr << name<<" "<<url << " Failed to open output file." << std::endl;
-        //MessageBox(NULL, name.c_str(), " url.c_str()", MB_OK);
-
-        cand = true;
-        exit(0);
-        return 1;
-    }
-
-    int dld = 1;
-
-    //int nowloadcount = 0;
-
-    for (long start = 0; start < file_size; start += segment_size) {
-        long end = start + segment_size - 1;
-        if (end >= file_size) {
-            end = file_size - 1;
-        }
-
-        string nowname = output_filename + ".bak." + to_string(dld);
-        //cout << nowname << endl;
-
-    
-
-        //std::cout << endl<<"Downloading segment: " << start << "-" << end << std::endl;
-        threadcount++;
-        thread(DownloadSegment, url, nowname, start, end, id, dld,false).detach();
-        //nowloadcount++;
-        dld++;
-        /*
-        if (!DownloadSegment(url, outputnow, start, end,id,dld) ){
-            std::cerr << url<<" Failed to download segment." << std::endl;
-            output.close();
-            cand = true;
-           //xit(0);
-            return 1;
-        }*/
-        //cout << endl << id << " " << end * 1.0 / size * 1.0 << endl;
-        //jin[id] = end;
-        
-    }
-   // cout << dld << endl;
-
-    bool add[8002];
-    memset(add, 0, sizeof(add));
-
-    while (1) {
-        bool flag = true;
-        for (int i = 1; i <= dld - 1; i++) {
-            if (fatherj[id][i] == false) {
-                flag = false;
-            }
-            else {
-                if (add[i] == false) {
-                    add[i] = true;
-                    if (i == dld - 1) {
-                        jin[id] += size % segment_size;
-                    }
-                    else {
-                        jin[id] += segment_size;
-                    }
-                    threadcount--;
-                    
-                }
-            }
-        }
-        if (flag) {
-            break;
-        }
-        Sleep(500);
-    }
-    //cout << "merge" << endl;
-    for (int i = 1; i <= dld - 1; i++) {
-        string next= output_filename + ".bak." + to_string(i);
-        //cout << next << endl;
-        if (mergeFiles(output_filename, next) == false) {
-            cand = true;
-        }
-        //mergeFiles(output_filename, next);
-        //rmfile(appeddp(next.c_str(), ""));
-    }
-
-    Sleep(500);
-
-    for (int i = 1; i <= dld - 1; i++) {
-        string next = output_filename + ".bak." + to_string(i);
-        //cout << next << endl;
-        //mergeFiles(output_filename, next);
-        rmfile(appedd(next.c_str(), ""));
-    }
-
-    // 关闭输出文件
-    output.close();
-    downcount--;
-    jin[id] = size;
-    //std::cout << endl << id << "Download complete." << std::endl;
-    comp[id] = true;
-
-}
 
 struct downloadinfo {
 	string name, url;
@@ -251,41 +65,233 @@ struct downloadinfo {
 };
 
 
-void DONLOAD_thread(vector<downloadinfo> q) {
-    threadcount = 0;
-    int i = 1;
-    downcount = 0;
-    for (auto it : q) {
-        if(downcount > 8) {
-            while (downcount > 8) {
-               //cout << downcount << endl;
-                Sleep(200);
-            }
-        }
-        
-       // cout << "Download  " << it.url << " " << it.name << " " << it.size << endl;
-        downcount++;
-        threadcount++;
-        thread(download_thered, it.url, it.name, it.size, i).detach();
-        threadcount--;
-        //thread(download_thered, it.url, it.name, it.size, i).join();
-        i++;
-
-        //downcount++;
-        if (cand == true) {
-            break;
-        }
-    }
-}
 
 
 
 class DOWNLOAD {
 public:
 
-    
+    bool comp[80000];
+    long long jin[80000];
+    bool fatherj[80000][5000];
+    int net;
+    int downcount;
+    int threadcount;
+    bool cand = false;
 	vector<downloadinfo> q;
     long long totel = 0;
+
+    size_t WriteData(void* ptr, size_t size, size_t nmemb, std::ofstream* stream)
+    {
+        stream->write(static_cast<char*>(ptr), size * nmemb);
+        return size * nmemb;
+    }
+
+    // 分段下载函数
+    void DownloadSegment(string url, string name, long start, long end, int father, int meid, bool re)
+    {
+        //net++;
+        CURL* curl;
+        CURLcode res;
+        ofstream outputnow(name, std::ios::binary);
+
+        curl = curl_easy_init();
+        if (curl) {
+
+
+            // 设置URL
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+            // 设置Range头
+            std::string range = std::to_string(start) + "-" + std::to_string(end);
+            curl_easy_setopt(curl, CURLOPT_RANGE, range.c_str());
+
+            // 设置写入数据的回调函数
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &DOWNLOAD::WriteData);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &outputnow);
+
+
+            // 设置SSL选项
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // 验证服务器的SSL证书
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // 验证证书上的主机名
+
+            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+            //  curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 20L);
+
+              // 设置总请求超时时间为30秒
+             // curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+
+              // 执行请求
+            res = curl_easy_perform(curl);
+
+            // 清理
+            curl_easy_cleanup(curl);
+
+            if (res != CURLE_OK) {
+                std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+                if (!re) {
+
+                    DownloadSegment(url, name, start, end, father, meid, true);
+
+                }
+                else {
+                    cout << "Try error" << endl;
+                }
+                //net--;
+                cand = true;
+                //return false;
+            }
+            outputnow.close();
+            fatherj[father][meid] = true;
+            //net--;
+
+            //return true;
+        }
+        cand = true;
+        //net--;
+        //return false;
+    }
+
+    void download_thered(string m_url, string name, long long size, int id) {
+        std::string url = m_url; // 替换为实际URL
+        std::string output_filename = name;
+        long segment_size = 1024 * 1024;
+
+        // 获取文件大小
+        long file_size = size;
+
+        //std::cout <<endl <<"File size: " << file_size << " bytes" << std::endl;
+
+        // 打开输出文件
+        std::ofstream output(output_filename, std::ios::binary);
+        if (!output.is_open()) {
+            std::cerr << name << " " << url << " Failed to open output file." << std::endl;
+            //MessageBox(NULL, name.c_str(), " url.c_str()", MB_OK);
+
+            cand = true;
+            exit(0);
+            //return 1;
+        }
+
+        int dld = 1;
+
+        //int nowloadcount = 0;
+
+        for (long start = 0; start < file_size; start += segment_size) {
+            long end = start + segment_size - 1;
+            if (end >= file_size) {
+                end = file_size - 1;
+            }
+
+            string nowname = output_filename + ".bak." + to_string(dld);
+            //cout << nowname << endl;
+
+
+
+            //std::cout << endl<<"Downloading segment: " << start << "-" << end << std::endl;
+            threadcount++;
+            thread d(&DOWNLOAD::DownloadSegment, url, nowname, start, end, id, dld, false);
+            d.detach();
+            //nowloadcount++;
+            dld++;
+            /*
+            if (!DownloadSegment(url, outputnow, start, end,id,dld) ){
+                std::cerr << url<<" Failed to download segment." << std::endl;
+                output.close();
+                cand = true;
+               //xit(0);
+                return 1;
+            }*/
+            //cout << endl << id << " " << end * 1.0 / size * 1.0 << endl;
+            //jin[id] = end;
+
+        }
+        // cout << dld << endl;
+
+        bool add[8002];
+        memset(add, 0, sizeof(add));
+
+        while (1) {
+            bool flag = true;
+            for (int i = 1; i <= dld - 1; i++) {
+                if (fatherj[id][i] == false) {
+                    flag = false;
+                }
+                else {
+                    if (add[i] == false) {
+                        add[i] = true;
+                        if (i == dld - 1) {
+                            jin[id] += size % segment_size;
+                        }
+                        else {
+                            jin[id] += segment_size;
+                        }
+                        threadcount--;
+
+                    }
+                }
+            }
+            if (flag) {
+                break;
+            }
+            Sleep(500);
+        }
+        //cout << "merge" << endl;
+        for (int i = 1; i <= dld - 1; i++) {
+            string next = output_filename + ".bak." + to_string(i);
+            //cout << next << endl;
+            if (mergeFiles(output_filename, next) == false) {
+                cand = true;
+            }
+            //mergeFiles(output_filename, next);
+            //rmfile(appeddp(next.c_str(), ""));
+        }
+
+        Sleep(500);
+
+        for (int i = 1; i <= dld - 1; i++) {
+            string next = output_filename + ".bak." + to_string(i);
+            //cout << next << endl;
+            //mergeFiles(output_filename, next);
+            rmfile(appedd(next.c_str(), ""));
+        }
+
+        // 关闭输出文件
+        output.close();
+        downcount--;
+        jin[id] = size;
+        //std::cout << endl << id << "Download complete." << std::endl;
+        comp[id] = true;
+
+    }
+
+    void DONLOAD_thread() {
+        threadcount = 0;
+        int i = 1;
+        downcount = 0;
+        for (int i = 0; i <= q.size();i++) {
+            if (downcount > 8) {
+                while (downcount > 8) {
+                    //cout << downcount << endl;
+                    Sleep(200);
+                }
+            }
+
+            // cout << "Download  " << it.url << " " << it.name << " " << it.size << endl;
+            downcount++;
+            threadcount++;
+            thread(mem_fn(&DOWNLOAD::download_thered), q[i].url, q[i].name, q[i].size, i).detach();
+            threadcount--;
+            //thread(download_thered, it.url, it.name, it.size, i).join();
+            i++;
+
+            //downcount++;
+            if (cand == true) {
+                break;
+            }
+        }
+    }
 
     void init() {
         memset(comp, false, sizeof(comp));
@@ -311,7 +317,7 @@ public:
                 break;
             }
         }*/
-        thread(DONLOAD_thread, q).detach();
+        thread(mem_fn(&DOWNLOAD::DONLOAD_thread)).detach();
         if (cand) {
             return;
         }
