@@ -191,7 +191,8 @@ public:
 
             //std::cout << endl<<"Downloading segment: " << start << "-" << end << std::endl;
             threadcount++;
-            thread d(&DOWNLOAD::DownloadSegment, url, nowname, start, end, id, dld, false);
+            // 此处启动分段下载时的DownloadSegment应该需要传入当前实例，该修复仅从逻辑层面考虑，代码不一定正确，请验证
+            thread d(&DOWNLOAD::DownloadSegment, this, url, nowname, start, end, id, dld, false);
             d.detach();
             //nowloadcount++;
             dld++;
