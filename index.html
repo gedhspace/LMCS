@@ -1,0 +1,56 @@
+<HTML>
+    <HEAD>
+        <META NAME="GENERATOR" Content="Microsoft Visual Studio">
+        <TITLE>LMCS</TITLE>
+    </HEAD>
+    <BODY>
+        <style type="text/css">
+            .download_click {
+                display: inline-block;
+                padding: 10px 20px;
+                font-size: 16px;
+                text-align: center;
+                text-decoration: none;
+                border-radius: 10px; /* 圆角的半径 */
+                background-color: #3498db; /* 按钮的背景颜色 */
+                color: #ffffff; /* 按钮文字颜色 */
+                border: 2px solid #3498db; /* 按钮边框样式 */
+                cursor: pointer;
+            }
+
+                .download_click:hover {
+                    background-color: #2980b9; /* 鼠标悬停时的背景颜色 */
+                    border-color: #2980b9; /* 鼠标悬停时的边框颜色 */
+                    color: #ffffff; /* 鼠标悬停时的文字颜色 */
+                }
+
+            #download_choos_version {
+                width: 350px;
+                height: 250px;
+                border: 1px solid #ccc;
+                position: absolute;
+                display: block;
+                z-index: 9999;
+                background: #fff;
+            }
+        </style>
+
+        <div id="download" class="download_mine">
+            <button id="download_click" class="download_click">下载游戏</button>
+        </div>
+
+        <div id="download_choos_version">
+
+            选择Minecraft版本
+
+        </div>
+
+        <script>
+            
+
+            function show2() {
+                document.getElementById("download_choos_version").style.display = "block";
+            }
+        </script>
+    </BODY>
+</HTML>
