@@ -14,6 +14,6 @@ public:
 private:
     int server_fd;
     int port;
-    void handleClient(int client_fd, char buff[], std::string bu);
+    void handleClient(int client_fd, int client);
     //std::string getResponse(const std::string& request);
 };

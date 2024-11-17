@@ -148,7 +148,7 @@ void downloadmc(string verdov) {
 
     cout << "end library" << endl;
     cout << "start assets" << endl;
-     //library ok
+    //library ok
 
     json ob = mcassetjsondata["objects"];
     //cout << ob << endl;

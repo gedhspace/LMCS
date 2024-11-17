@@ -277,19 +277,22 @@ void init() {
     //checkupdata();
     cout << "LMCS正在启动..." << endl;
     Getstartname();
+
+    //ver_str = getweb("http://launchermeta.mojang.com/mc/game/version_manifest.json");
+    
     //Sleep(1000);
     system("cls");
     print_logo();
-
+    
     
 
-    menu();
+    //menu();
 }
 DOWNLOAD t;
 int main() {
     curl_global_init(CURL_GLOBAL_ALL);
    //system("mode con cols=120 lines=40");
-    //init();
+    init();
    // CreatUser(1, "1");
     //downloadmc("1.20");
     

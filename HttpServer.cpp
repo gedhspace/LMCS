@@ -43,7 +43,10 @@ HttpServer::HttpServer(int port) : port(port) {
 void HttpServer::start() {
     std::cout << "Server is running on port " << port << std::endl;
 
+
+
     while (true) {
+       std::cout << "Wait." << std::endl;
         int client_fd = accept(server_fd, nullptr, nullptr);
         if (client_fd < 0) {
             perror("Accept failed");
@@ -51,13 +54,10 @@ void HttpServer::start() {
         }
         std::cout << "Accept" << std::endl;
         //std::cout << "next" << std::endl;
-        char buff[1024];
-        memset(buff, 0, sizeof(buff));
-        int len = recv(client_fd, buff, sizeof(buff), 0);
-        std::cout << buff << std::endl;
-        std::string s = buff;
+        
         // cout << buff << endl;
-        std::thread(&HttpServer::handleClient,this,client_fd, buff,s).detach();
+        std::thread(&HttpServer::handleClient, this, client_fd, client_fd).detach();
+        std::cout << "thread is run" << std::endl;
         //close(client_fd);
     }
 }
@@ -67,7 +67,7 @@ void HttpServer::SetRep(std::string(*func)(std::string))
     getResponse = func;
 }
 
-void HttpServer::handleClient(int client_fd, char buff[], std::string bu) {
+void HttpServer::handleClient(int client_fd,int client) {
     // char buffer[1024];
 
     // memset(buffer, 0, sizeof(buffer));
@@ -76,10 +76,18 @@ void HttpServer::handleClient(int client_fd, char buff[], std::string bu) {
     //std::cout << "now+" << bu << std::endl;
      //std::cout << "Received request:\n" << buffer << std::endl;
 
-    std::string response = getResponse(bu);
+    char buff[1024];
+    memset(buff, 0, sizeof(buff));
+    int len = recv(client_fd, buff, sizeof(buff), 0);
+    std::cout << buff << std::endl;
+    std::string s = buff;
+
+    std::string response = getResponse(s);
     send(client_fd, response.c_str(), response.size(), 0);
 
    std::cout << "Can next" << std::endl;
+
+   return;
 }
 
 

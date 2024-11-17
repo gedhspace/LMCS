@@ -1,56 +1,224 @@
 <HTML>
-    <HEAD>
-        <META NAME="GENERATOR" Content="Microsoft Visual Studio">
-        <TITLE>LMCS</TITLE>
-    </HEAD>
-    <BODY>
-        <style type="text/css">
-            .download_click {
-                display: inline-block;
-                padding: 10px 20px;
-                font-size: 16px;
-                text-align: center;
-                text-decoration: none;
-                border-radius: 10px; /* 圆角的半径 */
-                background-color: #3498db; /* 按钮的背景颜色 */
-                color: #ffffff; /* 按钮文字颜色 */
-                border: 2px solid #3498db; /* 按钮边框样式 */
-                cursor: pointer;
+<HEAD>
+    <META NAME="GENERATOR" Content="Microsoft Visual Studio">
+    <TITLE>LMCS</TITLE>
+    
+</HEAD>
+<BODY>
+    <style type="text/css">
+        .download_click {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px; /* 圆角的半径 */
+            background-color: #3498db; /* 按钮的背景颜色 */
+            color: #ffffff; /* 按钮文字颜色 */
+            border: 2px solid #3498db; /* 按钮边框样式 */
+            cursor: pointer;
+        }
+
+            .download_click:hover {
+                background-color: #2980b9; /* 鼠标悬停时的背景颜色 */
+                border-color: #2980b9; /* 鼠标悬停时的边框颜色 */
+                color: #ffffff; /* 鼠标悬停时的文字颜色 */
             }
 
-                .download_click:hover {
-                    background-color: #2980b9; /* 鼠标悬停时的背景颜色 */
-                    border-color: #2980b9; /* 鼠标悬停时的边框颜色 */
-                    color: #ffffff; /* 鼠标悬停时的文字颜色 */
+        #download_choos_version {
+            width: 350px;
+            height: 250px;
+            border: 1px solid #ccc;
+            position: absolute;
+            display: none;
+            z-index: 9999;
+            background: #fff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .download_choos_version {
+            position: absolute;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            overflow: hidden;
+            resize: both;
+            display: none;
+            cursor: move;
+        }
+
+        .header {
+            background-color: #f1f1f1;
+            padding: 10px;
+            cursor: move;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+        }
+
+            .close-btn:hover {
+                background-color: #e74c3c;
+                color: white;
+            }
+
+        .content {
+            height: 300px;
+            width: 400px;
+        }
+
+        .chossver {
+            cursor: pointer;
+        }
+
+            .chossver:hover {
+                background-color: #f0f0f0; /* 鼠标悬停时的背景色 */
+            }
+    </style>
+
+    <div id="download" class="download_mine">
+        <button id="download_click" class="download_click">下载游戏</button>
+    </div>
+
+    <div class="download_choos_version">
+
+        <div class="header">
+            <span class="title">选择游戏版本</span>
+            <button class="close-btn">关闭</button>
+        </div>
+        <div class="content" style="overflow:auto;">
+            <!-- 在这里添加你的页面内容 -->
+            1+1=2
+        </div>
+
+    </div>
+
+    
+
+    <script>
+        const draggableWindow = document.querySelector(
+            ".download_choos_version"
+        );
+        const header = draggableWindow.querySelector(".header");
+        const closeBtn = draggableWindow.querySelector(".close-btn");
+        const startBtn = document.querySelector(".download_click");
+        let isDragging = false;
+        let startX, startY, initialOffsetX, initialOffsetY;
+
+        header.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialOffsetX = draggableWindow.offsetLeft;
+            initialOffsetY = draggableWindow.offsetTop;
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            const newOffsetX = initialOffsetX + dx;
+            const newOffsetY = initialOffsetY + dy;
+            const maxWidth = window.innerWidth - draggableWindow.offsetWidth;
+            const maxHeight = window.innerHeight - draggableWindow.offsetHeight;
+            const newLeft = Math.min(Math.max(newOffsetX, 0), maxWidth);
+            const newTop = Math.min(Math.max(newOffsetY, 0), maxHeight);
+            draggableWindow.style.left = `${newLeft}px`;
+            draggableWindow.style.top = `${newTop}px`;
+        });
+
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+
+        closeBtn.addEventListener("click", () => {
+            draggableWindow.style.display = "none";
+        });
+
+
+
+        startBtn.addEventListener("click", () => {
+            draggableWindow.style.display = "block";
+
+            const content = draggableWindow.querySelector(".content");
+            content.innerHTML = "<br>正在获取版本信息";
+
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.open('GET', '/getver', true);
+            httpRequest.send();
+
+            httpRequest.onreadystatechange = function () {
+                if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+                    var json = httpRequest.responseText;//获取到json字符串，还需解析
+                    console.log(json);
+
+                    var obj = JSON.parse(json);
+
+                    console.log(Object.keys(obj));
+
+                    var verlist = Object.keys(obj);
+
+                    content.innerHTML = "<br>共有" + verlist.length + "个版本";
+                    content.innerHTML += "<ul>";
+
+
+                    for (var k = 0; k < verlist.length; k++) {
+                        content.innerHTML += "<li class=\"chossver\">" + verlist[k] + "</li>";
+
+                    }
+
+                    content.innerHTML += "</ul>";
+
+
+                    var lis = document.querySelectorAll('li');
+
+                    for (var i = 0; i < lis.length; i++) {
+                        lis[i].index = i;
+                        lis[i].onclick = function () {
+                            console.log(verlist[this.index]);
+
+                            
+
+                            if (window.confirm("确认下载游戏版本" + verlist[this.index]+"?")) {
+                                // 用户点击了确定
+                                console.log("用户点击了确定。");
+                                var httpRequest = new XMLHttpRequest();
+                                httpRequest.open('GET', '/download_minecraft?ver='+verlist[this.index], true);
+                                httpRequest.send();
+                            } else {
+                                // 用户点击了取消
+                                console.log("用户点击了取消。");
+                            }
+                        }
+                    }
+
+                } else {
+                    //content.innerHTML = "<br>无法连接至服务端，检查服务端是否运行";
                 }
+            };
 
-            #download_choos_version {
-                width: 350px;
-                height: 250px;
-                border: 1px solid #ccc;
-                position: absolute;
-                display: block;
-                z-index: 9999;
-                background: #fff;
-            }
-        </style>
-
-        <div id="download" class="download_mine">
-            <button id="download_click" class="download_click">下载游戏</button>
-        </div>
-
-        <div id="download_choos_version">
-
-            选择Minecraft版本
-
-        </div>
-
-        <script>
-            
-
-            function show2() {
-                document.getElementById("download_choos_version").style.display = "block";
-            }
-        </script>
-    </BODY>
+        });
+    </script>
+</BODY>
 </HTML>

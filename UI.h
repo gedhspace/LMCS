@@ -115,7 +115,9 @@ string getResponse(string request) {
         found = true;
     }
 
-
+    if (findh == "favicon.ico") {
+        found = true;
+    }
 
     if (!found) {
         response = "HTTP/1.1 200 OK\r\n";
