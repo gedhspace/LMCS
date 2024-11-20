@@ -1,9 +1,11 @@
 #include "HttpServer.h"
-#include <corecrt_io.h>
 #include <fstream>
 #include<string>
 #include <thread>
 #include <future>
+#include <corecrt_io.h>
+
+
 //#include <io.h>
 #pragma warning(disable : 4996)
 
@@ -48,12 +50,16 @@ void HttpServer::start() {
     while (true) {
        std::cout << "Wait." << std::endl;
        std::cout << "------------" << std::endl;
+       
         int client_fd = accept(server_fd, nullptr, nullptr);
         if (client_fd < 0) {
             perror("Accept failed");
             continue;
         }
+
+        
         std::cout << "Accept" << std::endl;
+
         //std::cout << "next" << std::endl;
         
         // cout << buff << endl;
@@ -85,6 +91,11 @@ void HttpServer::handleClient(int client_fd,int client) {
     char buff[1024];
     memset(buff, 0, sizeof(buff));
     int len = recv(client_fd, buff, sizeof(buff), 0);
+    if (len < 0) {
+        std::cerr << "Receive failed: " << strerror(errno) << std::endl;
+        close(client_fd);
+        return;
+    }
 
    // Sleep(1000);
     std::cout << buff << std::endl;
@@ -92,7 +103,10 @@ void HttpServer::handleClient(int client_fd,int client) {
     std::cout << "Get response." << std::endl;
     std::string response = getResponse(s);
     Sleep(200);
-    send(client_fd, response.c_str(), response.size(), 0);
+
+    if (send(client_fd, response.c_str(), response.size(), 0) < 0) {
+        std::cerr << "Send failed: " << strerror(errno) << std::endl;
+    }
 
    std::cout << "Can next \n --------------------------" << std::endl;
 
