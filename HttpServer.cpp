@@ -47,6 +47,7 @@ void HttpServer::start() {
 
     while (true) {
        std::cout << "Wait." << std::endl;
+       std::cout << "------------" << std::endl;
         int client_fd = accept(server_fd, nullptr, nullptr);
         if (client_fd < 0) {
             perror("Accept failed");
@@ -56,8 +57,13 @@ void HttpServer::start() {
         //std::cout << "next" << std::endl;
         
         // cout << buff << endl;
-        std::thread(&HttpServer::handleClient, this, client_fd, client_fd).detach();
+        std::thread th(&HttpServer::handleClient, this, client_fd, client_fd);
+        th.detach();
         std::cout << "thread is run" << std::endl;
+        std::cout << "detch" << std::endl;
+        std::cout<<"Debug end." << std::endl << std::endl << std::endl;
+
+
         //close(client_fd);
     }
 }
@@ -79,13 +85,16 @@ void HttpServer::handleClient(int client_fd,int client) {
     char buff[1024];
     memset(buff, 0, sizeof(buff));
     int len = recv(client_fd, buff, sizeof(buff), 0);
+
+   // Sleep(1000);
     std::cout << buff << std::endl;
     std::string s = buff;
-
+    std::cout << "Get response." << std::endl;
     std::string response = getResponse(s);
+    Sleep(200);
     send(client_fd, response.c_str(), response.size(), 0);
 
-   std::cout << "Can next" << std::endl;
+   std::cout << "Can next \n --------------------------" << std::endl;
 
    return;
 }

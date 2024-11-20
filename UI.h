@@ -16,8 +16,8 @@ string getResponse(string request) {
     string loc;
     int Httpwz = request.find("HTTP");
     if (Httpwz < 0) {
-        cout << "Error" << endl;
-        exit(0);
+        cout << "Error for empty request." << endl;
+        //exit(0);
     }
     for (int i = 4; i <= Httpwz - 2; i++) {
         loc = loc + request[i];
@@ -35,7 +35,7 @@ string getResponse(string request) {
 
 
 
-    cout << can << endl;
+    //cout << can << endl;
 
 
 
